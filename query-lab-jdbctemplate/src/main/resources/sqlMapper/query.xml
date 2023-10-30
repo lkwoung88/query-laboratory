@@ -5,4 +5,105 @@
         SELECT article.content AS content
         FROM t_article AS article
     </entry>
+
+    <entry key="article.test">
+        SELECT
+            ma.menu_author_no AS menuAuthNo,
+            ma.menu_no AS menuNo,
+            ma.menu_nm AS menuName,
+            ma.menu_url AS menuUrl,
+            ma.menu_cn AS menuContent,
+            ma.sort_ordr AS menuAuthOrder,
+            ma.use_yn AS menuAuthUseYn,
+            ma.evnt_log_use_yn AS eventLogUseYn,
+            ma.adt_log_use_yn AS auditLogUseYn,
+            ma.frst_reg_accnt_no AS firstRegisterAccountNo,
+            ma.frst_reg_dt AS firstRegisterDate,
+            ma.last_reg_accnt_no AS lastRegisterAccountNo,
+            ma.last_reg_dt AS lastRegisterDate,
+            COALESCE(ama.use_yn, gma.use_yn, 'N') AS accountAuthUseYn
+        FROM
+            common.t_menu_author ma
+        LEFT JOIN
+            common.t_accnt_menu_author ama ON ma.menu_author_no = ama.menu_author_no AND ama.accnt_no = ?
+        LEFT JOIN
+            common.t_authgrp_menu_author gma ON ma.menu_author_no = gma.menu_author_no AND gma.authgrp_no = ?
+        WHERE
+            ma.menu_no = ?;
+    </entry>
+
+    <entry key="article.test2">
+        SELECT
+            ac.accnt_no AS accountNo,
+            ac.id AS accountId,
+            ac.accnt_stus_cd AS accountStateCode,
+            us.usr_no AS userNo,
+            us.name AS userName,
+            ps.pstins_nm AS organization,
+            cm.cd_nm AS accountPosition,
+            COALESCE(gr.authgrp_nm, '')
+        FROM
+            common.t_accnt ac
+        INNER JOIN
+            common.t_usr us ON ac.usr_no = us.usr_no
+        INNER JOIN
+            common.t_pstins_info ps ON us.pstins_cd = ps.pstins_cd
+        INNER JOIN
+            common.t_cmn_cd cm ON us.jbgd_cd = cm.cmn_cd
+        LEFT JOIN
+            common.t_accnt_authgrp ag ON ac.accnt_no = ag.accnt_no
+        LEFT JOIN
+            common.t_authgrp gr ON ag.authgrp_no = gr.authgrp_no
+        ORDER BY
+            ac.accnt_no
+        LIMIT ? OFFSET ?
+    </entry>
+
+    <entry key="article.test3">
+        String sql = "SELECT
+            ag.authgrp_no AS authGroupNo,
+            ag.authgrp_cn AS authGroupContent,
+            ag.authgrp_nm AS authGroupName,
+            ag.sort_ordr AS authGroupOrder,
+            ag.frst_reg_dt AS firstRegisterDate,
+            ag.last_reg_dt AS lastRegisterDate,
+            ag.use_yn AS authGroupUseYn,
+            COALESCE(fu.name, '') AS firstRegisterName,
+            COALESCE(lu.name, '') AS lastRegisterName
+        FROM
+            common.t_authgrp ag
+        LEFT JOIN
+            common.t_accnt fa ON ag.frst_reg_accnt_no = fa.accnt_no
+        LEFT JOIN
+            common.t_usr fu ON fa.usr_no = fu.usr_no
+        LEFT JOIN
+            common.t_accnt la ON ag.last_reg_accnt_no = la.accnt_no
+        LEFT JOIN
+            common.t_usr lu ON la.usr_no = lu.usr_no
+    </entry>
+
+    <entry key="article.test4">
+        SELECT
+            m.menu_no AS MenuNo,
+            m.up_menu_no AS UpMenuNo,
+            m.menu_nm AS MenuName,
+            m.menu_url AS MenuUrl,
+            m.sort_ordr AS MenuOrder,
+            m.use_yn AS MenuUseYn,
+            m.sys_cd AS SystemCode,
+            m.html_cn AS HtmlContent,
+            m.evnt_log_use_yn AS EventLogUseYn,
+            m.adt_log_use_yn AS AuditLogUseYn,
+            m.frst_reg_accnt_no AS FirstRegisterAccountNo,
+            m.frst_reg_dt AS FirstRegisterDate,
+            m.last_reg_accnt_no AS LastRegisterAccountNo,
+            m.last_reg_dt AS LastRegisterDate
+        FROM
+            common.t_menu m
+        INNER JOIN
+            common.t_menu_author ma ON m.menu_no = ma.menu_no
+        WHERE
+            ma.menu_author_no IN (" + String.join(",", Collections.nCopies(authorityList.size(), "?")) + ") AND ma.menu_author_cd = ? AND m.use_yn = 'Y'
+        ORDER BY m.sort_ordr
+    </entry>
 </properties>
